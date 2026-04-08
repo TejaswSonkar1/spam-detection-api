@@ -1,26 +1,64 @@
-name: CI Pipeline
+# name: CI Pipeline
+
+# on:
+#   push:
+#     branches: ["main"]
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Setup Python
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: 3.11
+
+#       - name: Install dependencies
+#         run: |
+#           pip install -r requirements.txt
+
+#       - name: Test
+#         run: |
+#           python -c "print('Build Successful')"
+name: CI Pipeline (API Test)
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
 
 jobs:
-  build:
+  test-api:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    # 1. Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
+    # 2. Setup Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+    # 3. Install dependencies
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
 
-      - name: Test
-        run: |
-          python -c "print('Build Successful')"
+    # 4. Start FastAPI server in background
+    - name: Start API server
+      run: |
+        uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+        sleep 5
+
+    # 5. Test API endpoint
+    - name: Test /predict endpoint
+      run: |
+        curl -X POST "http://127.0.0.1:8000/predict?text=win%20money%20now" \
+        -H "accept: application/json"
